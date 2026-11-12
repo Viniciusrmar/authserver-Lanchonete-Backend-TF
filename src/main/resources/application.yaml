@@ -33,3 +33,10 @@ springdoc:
 logging:
   file:
     path: ./logs
+
+# Segredo do JWT: pode ser trocado pela variável de ambiente JWT_SECRET (mínimo 32 caracteres)
+security:
+  jwt:
+    secret: ${JWT_SECRET:lanchonete-api-segredo-de-desenvolvimento-com-mais-de-32-chars}
+    issuer: Lanchonete API
+    expire-hours: 2

@@ -7,12 +7,14 @@ import br.pucpr.authserver.users.UserRepository
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 
 @Component
 class BootStrapper(
     val roleRepository: RoleRepository,
-    val userRepository: UserRepository
+    val userRepository: UserRepository,
+    val passwordEncoder: PasswordEncoder
 ) : ApplicationListener<ContextRefreshedEvent> {
 
     @Transactional
@@ -28,11 +30,21 @@ class BootStrapper(
         if (userRepository.findByRole("ADMIN").isEmpty()) {
             val admin = User(
                 name = "Administrator",
-                password = "admin",
+                password = passwordEncoder.encode("admin")!!,
                 email = "admin@authserver.com"
             )
             admin.roles.add(adminRole)
             userRepository.save(admin)
+        }
+        // Usuário comum (sem role) para demonstrar o 403 nas ações de ADMIN
+        if (userRepository.findByEmail("cliente@authserver.com") == null) {
+            userRepository.save(
+                User(
+                    name = "Cliente",
+                    password = passwordEncoder.encode("cliente")!!,
+                    email = "cliente@authserver.com"
+                )
+            )
         }
     }
 }

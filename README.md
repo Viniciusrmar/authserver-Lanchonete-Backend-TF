@@ -10,14 +10,40 @@ Extensão do **AuthServer** visto na disciplina *Back-End: Web Services* (Opçã
 🎥 _link do YouTube (não listado) aqui_
 
 ## Tecnologias
-Kotlin · Spring Boot 4 · Spring Data JPA · H2 · Bean Validation · SpringDoc (Swagger) · SLF4J
+Kotlin · Spring Boot 4 · Spring Data JPA · H2 · Bean Validation · Spring Security + JWT (jjwt) · BCrypt · SpringDoc (Swagger) · SLF4J
 
 ## Como rodar
 1. Abra o projeto no IntelliJ (Java 21).
 2. Rode `AuthserverApplication`.
 3. Swagger: http://localhost:8080/api — Console H2: http://localhost:8080/api/h2-console (JDBC URL `jdbc:h2:mem:db`, user `sa`, senha `sa`).
 
-Ao subir, o servidor já cria 3 categorias e 7 produtos de exemplo.
+Ao subir, o servidor já cria 3 categorias, 7 produtos e 2 usuários de exemplo:
+
+| Usuário | Senha | Role |
+|---|---|---|
+| `admin@authserver.com` | `admin` | ADMIN |
+| `cliente@authserver.com` | `cliente` | — |
+
+## Segurança (JWT)
+1. Faça `POST /api/users/login` com `{"email": "admin@authserver.com", "password": "admin"}`.
+2. Copie o `token` da resposta.
+3. No Swagger, clique em **Authorize** e cole o token (sem escrever "Bearer").
+
+| Rota | Quem pode |
+|---|---|
+| `GET` em qualquer recurso, cadastro e login | Público |
+| Criar, abrir e montar pedidos (`/pedidos/**`, incluindo remover item) | Usuário logado |
+| `DELETE` em qualquer recurso (exceto remover item do próprio pedido) | ADMIN |
+| `POST`/`PUT` em categorias e produtos, `PUT` em usuários (roles), `POST` em roles | ADMIN |
+
+Sem token → **401 Unauthorized**. Com token mas sem a role exigida → **403 Forbidden**.
+
+Como funciona:
+- **`SecurityConfig`**: define as regras de cada rota, deixa a API *stateless* (sem sessão), desliga o CSRF (não usamos cookie) e configura o CORS.
+- **`JwtTokenFilter`**: roda antes de cada requisição, lê o header `Authorization: Bearer <token>` e, se o token for válido, marca o usuário como autenticado.
+- **`JWT`**: gera o token (assinado com HMAC-SHA256, com id, nome, roles e expiração de 2h) e valida assinatura, emissor e expiração.
+- **Senhas** são salvas com **BCrypt**, nunca em texto puro.
+- **Segredo externalizado**: a chave do JWT fica no `application.yaml` e pode ser trocada pela variável de ambiente `JWT_SECRET`.
 
 ## Modelo
 
@@ -51,6 +77,12 @@ Classes novas: `Categoria`, `Produto`, `Pedido`, `ItemPedido`.
 | PUT | `/produtos/{id}/categoria/{idCategoria}` | Associa o produto a outra categoria |
 | DELETE | `/produtos/{id}` | Exclui (409 se estiver em pedidos) |
 
+### Usuários (já existentes no AuthServer) + login
+| Método | Rota | Descrição |
+|---|---|---|
+| POST | `/users` | Cadastro (senha salva com BCrypt) |
+| POST | `/users/login` | Login — devolve o token JWT |
+
 ### Pedidos — associação com produtos
 | Método | Rota | Descrição |
 |---|---|---|
@@ -66,4 +98,5 @@ Classes novas: `Categoria`, `Produto`, `Pedido`, `ItemPedido`.
 - **Validação** com Bean Validation nos requests (`@NotBlank`, `@DecimalMin`, `@PositiveOrZero`, `@Min`).
 - **Exceções** customizadas (`NotFoundException`, `ConflictException`, `BadRequestException`) tratadas pelo `GlobalExceptionHandler`, que devolve `ProblemDetail`.
 - **Logs** com SLF4J nos services (`info` em criações/alterações, `warn` em exclusões), gravados em `./logs`.
+- **Segurança**: Spring Security + JWT, ações destrutivas só para ADMIN, senhas com BCrypt.
 - **Regras de negócio**: controle de estoque, preço congelado no item, pedido só pode ser alterado enquanto ABERTO.

@@ -43,11 +43,11 @@ dependencies {
 	testImplementation("io.mockk:mockk-jvm:1.14.11")
 
 	// Security
-	//implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-security")
 	val jjwt = "0.13.0"
-	implementation("io.jsonwebtoken:jjwt:$jjwt")
-	implementation("io.jsonwebtoken:jjwt-jackson:${jjwt}")
-	runtimeOnly("io.jsonwebtoken:jjwt-impl:${jjwt}")
+	implementation("io.jsonwebtoken:jjwt-api:$jjwt")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwt")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwt")
 }
 
 kotlin {
