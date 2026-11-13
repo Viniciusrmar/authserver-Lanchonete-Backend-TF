@@ -7,7 +7,7 @@ Extensão do **AuthServer** visto na disciplina *Back-End: Web Services* (Opçã
 - Pedro Augusto Stabach
 
 ## Vídeo
-🎥 _link do YouTube (não listado) aqui_
+🎥(https://www.youtube.com/watch?v=ya3KOQ2ZknE)
 
 ## Tecnologias
 Kotlin · Spring Boot 4 · Spring Data JPA · H2 · Bean Validation · Spring Security + JWT (jjwt) · BCrypt · SpringDoc (Swagger) · SLF4J
